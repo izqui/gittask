@@ -37,7 +37,8 @@ func setupServer(s *martini.Martini) {
 	s.Use(martini.Recovery())
 	s.Use(sessions.Sessions("sessionbro", sessions.NewCookieStore([]byte("olakase"))))
 	s.Use(oauth2.Github(&oauth2.Options{
-
+		
+		//From keys_.go file
 		ClientId:     ClientId,
 		ClientSecret: ClientSecret,
 		RedirectURL:  host + "/oauth2callback",

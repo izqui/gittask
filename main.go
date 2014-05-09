@@ -11,7 +11,7 @@ import (
 )
 
 var host string = "http://localhost:"
-var server *martini.Martini
+var server *martini.ClassicMartini
 
 func init() {
 
@@ -32,9 +32,7 @@ func setupServer(s *martini.Martini) {
 	host = host + *port
 
 	//MARTINI
-	s = martini.New()
-	s.Use(martini.Logger())
-	s.Use(martini.Recovery())
+	s = martini.Classic()
 	s.Use(sessions.Sessions("sessionbro", sessions.NewCookieStore([]byte("olakase"))))
 	s.Use(oauth2.Github(&oauth2.Options{
 		
@@ -46,12 +44,9 @@ func setupServer(s *martini.Martini) {
 	}))
 	//s.Use(martini.Static("static"))
 
-	router := martini.NewRouter()
 	website := &Website{}
 
-	router.Get("/", oauth2.LoginRequired, website.Index)
-
-	s.Action(router.Handle)
+	s.Get("/", oauth2.LoginRequired, website.Index)
 
 	server = s
 

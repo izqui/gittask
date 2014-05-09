@@ -1,8 +1,7 @@
 package main
 
 import (
-	//"fmt"
-	//"github.com/go-martini/martini"
+	"fmt"
 	"github.com/izqui/oauth2"
 )
 

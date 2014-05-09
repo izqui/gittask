@@ -2,15 +2,14 @@ package main
 
 import (
 	"flag"
-	//"fmt"
+	"fmt"
 	"os"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/oauth2"
+	"github.com/izqui/oauth2"
 	"github.com/martini-contrib/sessions"
 )
 
-var host string = "http://localhost:"
 var server *martini.Martini
 
 func init() {
@@ -25,11 +24,16 @@ func main() {
 
 func setupServer(s *martini.Martini) {
 
+	//MODULES
+	website := &Website{}
+	api := &Api{}
+
 	//PORT
 	port := flag.String("port", "9000", "Port for the HTTP server")
 	flag.Parse()
 	os.Setenv("PORT", *port)
-	host = host + *port
+
+	baseurl := fmt.Sprintf("%s://%s:%s", GittaskProtocol, GittaskHost, *port)
 
 	//MARTINI
 	s = martini.New()
@@ -37,17 +41,17 @@ func setupServer(s *martini.Martini) {
 	s.Use(martini.Recovery())
 	s.Use(sessions.Sessions("sessionbro", sessions.NewCookieStore([]byte("olakase"))))
 	s.Use(oauth2.Github(&oauth2.Options{
-		
-		//From keys_.go file
-		ClientId:     ClientId,
-		ClientSecret: ClientSecret,
-		RedirectURL:  host + "/oauth2callback",
-		Scopes:       []string{"user", "repo"},
+
+		//From conf_.go file
+		ClientId:      GithubClientId,
+		ClientSecret:  GithubClientSecret,
+		RedirectURL:   baseurl + "/oauth2callback",
+		Scopes:        []string{"user", "repo"},
+		LoginCallback: api.Login,
 	}))
 	//s.Use(martini.Static("static"))
 
 	router := martini.NewRouter()
-	website := &Website{}
 
 	router.Get("/", oauth2.LoginRequired, website.Index)
 

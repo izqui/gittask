@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	//"github.com/go-martini/martini"
-	"github.com/martini-contrib/oauth2"
+	"github.com/izqui/oauth2"
 )
 
 type Website struct{}

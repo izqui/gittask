@@ -25,6 +25,7 @@ func main() {
 func setupServer(s *martini.Martini) {
 
 	//MODULES
+
 	website := &Website{}
 	api := &Api{}
 

@@ -61,7 +61,7 @@ func setupServer(s *martini.Martini) {
 
 	router := martini.NewRouter()
 
-	router.Get("/", website.Index)
+	router.Get("/", oauth2.LoginRequired, website.Index)
 
 	s.Action(router.Handle)
 
@@ -82,5 +82,6 @@ func setupDB(db *mgo.Database) {
 	}
 
 	db = session.DB(DatabaseName)
+	DB = db
 
 }

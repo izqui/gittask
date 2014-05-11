@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+	//"io/ioutil"
+	"labix.org/v2/mgo/bson"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
-
-	"labix.org/v2/mgo/bson"
 )
 
 const (
@@ -22,10 +22,12 @@ type Github struct {
 }
 
 type User struct {
-	Id          bson.ObjectId `bson: "_id"`
-	Username    string        `json:"login" bson:"username"`
-	Email       string        `json:"email" bson:"email"`
-	AccessToken string        `bson:"token"`
+	Id bson.ObjectId `json:"_id,omitempty" bson: "_id"`
+
+	Email       string `json:"email,omitempty" bson:"email"`
+	Username    string `json:"login" bson:"username"`
+	Location    string `json:"location,omitempty" bson:"location"`
+	AccessToken string `json:""bson:"token"`
 }
 
 type userCallback chan *User
@@ -99,16 +101,17 @@ func (g *Github) request(method string, path string, params map[string]string, b
 	} else {
 
 		defer resp.Body.Close()
-		contents, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Printf("%s", err)
-			os.Exit(1)
-		}
 
-		user := &User{}
-		json.Unmarshal(contents, &user)
+		user, _ := decodeUser(resp.Body)
 		user.AccessToken = g.AccessToken
 
 		cb <- user
 	}
+}
+
+func decodeUser(r io.Reader) (u *User, err error) {
+
+	u = new(User)
+	err = json.NewDecoder(r).Decode(u)
+	return
 }

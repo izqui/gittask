@@ -1,8 +1,7 @@
 package main
 
 import (
-	//"fmt"
-
+	"fmt"
 	"github.com/izqui/oauth2"
 
 	//"labix.org/v2/mgo"
@@ -18,14 +17,13 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 
 	//Is a user with that token in the database?
 
-	if err := userCollection.Find(bson.M{"token": tokens.Access()}).One(&user); err != nil {
+	err := userCollection.Find(bson.M{"token": tokens.Access()}).One(&user)
 
-		panic(err)
-	}
-	if user == nil {
+	if err != nil || user == nil {
 
 		//Get user and save it if not in database
 		github := Github{AccessToken: tokens.Access()}
+
 		user = github.UserInfo("me")
 		user.Id = bson.NewObjectId()
 
@@ -34,5 +32,8 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 			panic(err)
 		}
 
+	} else {
+
+		fmt.Printf("Db user %v", *user)
 	}
 }

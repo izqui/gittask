@@ -13,7 +13,7 @@ func (w *Website) Index(tokens oauth2.Tokens) string {
 
 	if !isNil(tokens) {
 
-		return fmt.Sprintf("You're logged in until %v :)", tokens.ExpiryTime())
+		return fmt.Sprintf("You're logged in %v :)", tokens.Access())
 	}
 	return "You're not logged in :("
 }

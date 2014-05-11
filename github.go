@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+
+	"labix.org/v2/mgo/bson"
 )
 
 const (
@@ -20,9 +22,10 @@ type Github struct {
 }
 
 type User struct {
-	Username    string `json:"login"`
-	Email       string `json:"email"`
-	AccessToken string
+	Id          bson.ObjectId `bson: "_id"`
+	Username    string        `json:"login" bson:"username"`
+	Email       string        `json:"email" bson:"email"`
+	AccessToken string        `bson:"token"`
 }
 
 type userCallback chan *User

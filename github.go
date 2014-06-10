@@ -2,15 +2,17 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
-	"io"
+	//"io"
 	//"io/ioutil"
-	"labix.org/v2/mgo/bson"
+
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+
+	"github.com/izqui/helpers"
 )
 
 const (
@@ -19,15 +21,6 @@ const (
 
 type Github struct {
 	AccessToken string
-}
-
-type User struct {
-	Id bson.ObjectId `json:"_id,omitempty" bson: "_id"`
-
-	Email       string `json:"email,omitempty" bson:"email"`
-	Username    string `json:"login" bson:"username"`
-	Location    string `json:"location,omitempty" bson:"location"`
-	AccessToken string `json:""bson:"token"`
 }
 
 type userCallback chan *User
@@ -102,16 +95,11 @@ func (g *Github) request(method string, path string, params map[string]string, b
 
 		defer resp.Body.Close()
 
-		user, _ := decodeUser(resp.Body)
+		user := new(User)
+		helpers.DecodeJSON(resp.Body, user)
+
 		user.AccessToken = g.AccessToken
 
 		cb <- user
 	}
-}
-
-func decodeUser(r io.Reader) (u *User, err error) {
-
-	u = new(User)
-	err = json.NewDecoder(r).Decode(u)
-	return
 }

@@ -15,7 +15,29 @@ type User struct {
 	Email       string `json:"email,omitempty" bson:"email"`
 	Username    string `json:"login" bson:"username"`
 	Location    string `json:"location,omitempty" bson:"location"`
-	AccessToken string `json:"" bson:"token" map:"token"`
+	AccessToken string `json:"" bson:"token"`
+}
+
+type Repo struct {
+	Id       bson.ObjectId `json:"_id,omitempty"`
+	GithubId int           `json:"id,omitempty"`
+
+	Name     string `json:"name,omitempty"`
+	FullName string `json:"full_name,omitempty"`
+}
+
+func CurrentUser(token string) (user *User) {
+
+	userCollection := DB.C("users")
+
+	if err := userCollection.Find(bson.M{"token": token}).One(&user); err != nil {
+
+		panic(err)
+
+	} else {
+
+		return user
+	}
 }
 
 func (u *User) Update() {

@@ -19,7 +19,6 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 	//Is a user with that token in the database?
 	if err := userCollection.Find(bson.M{"token": token}).One(&user); err != nil || user == nil {
 
-		fmt.Println("Getting github user")
 		//Get user and save it if not in database
 		github := &Github{AccessToken: token}
 		user = github.UserInfo("me")
@@ -27,8 +26,6 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 		//Check if that github user is already in the database with a different token
 		dbuser := &User{}
 		if err := userCollection.Find(bson.M{"username": user.Username}).One(&dbuser); err != nil || dbuser == nil {
-
-			fmt.Println("Saving DB user")
 
 			user.Id = bson.NewObjectId()
 			//Save user
@@ -38,7 +35,6 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 			}
 		} else {
 
-			fmt.Printf("Updating token %v \n", *dbuser)
 			dbuser.AccessToken = token
 			dbuser.Update()
 		}
@@ -46,7 +42,6 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 	} else {
 
 		fmt.Printf("Db user %v", *user)
-		user.Location = "New location"
-		user.Update()
+
 	}
 }

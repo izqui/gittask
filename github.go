@@ -2,17 +2,17 @@ package main
 
 import (
 	"bytes"
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
 	//"io"
-	//"io/ioutil"
+	"io/ioutil"
 
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 
-	"github.com/izqui/helpers"
+	//"github.com/izqui/helpers"
 )
 
 const (
@@ -23,11 +23,11 @@ type Github struct {
 	AccessToken string
 }
 
-type userCallback chan *User
+type jsonCallback chan []byte
 
 func (g *Github) UserInfo(username string) *User {
 
-	callback := make(userCallback)
+	callback := make(jsonCallback)
 
 	path := "/user"
 
@@ -40,14 +40,69 @@ func (g *Github) UserInfo(username string) *User {
 
 	select {
 
-	case user := <-callback:
-		return user
+	case body := <-callback:
 
+		user := new(User)
+		json.Unmarshal(body, &user)
+
+		return user
 	}
 
 }
 
-func (g *Github) request(method string, path string, params map[string]string, body map[string]string, cb userCallback) {
+func (g *Github) UserRepos(username string) []Repo {
+
+	callback := make(jsonCallback)
+
+	path := "/user/repos"
+
+	if username != "" && username != "me" {
+
+		path = "/users/" + username + "/repos"
+	}
+
+	go g.request("GET", path, map[string]string{"type": "public", "sort": "pushed"}, nil, callback)
+
+	select {
+
+	case body := <-callback:
+
+		/*var repos []json.RawMessage
+
+		if err := json.Unmarshal(body, &repos); err != nil {
+
+			panic(err)
+		}
+
+		for _, obj := range repos {
+
+			var repo Repo
+			if err := json.Unmarshal(obj, &repo); err != nil {
+
+				panic(err)
+			}
+
+			fmt.Printf("%v", repo)
+		}
+
+		return make([]Repo, 1)
+
+		//fmt.Print(repos)
+
+		//return repos
+		*/
+
+		var repos []Repo
+		if err := json.Unmarshal(body, &repos); err != nil {
+
+			panic(err)
+		}
+		return repos
+	}
+
+}
+
+func (g *Github) request(method string, path string, params map[string]string, body map[string]string, cb jsonCallback) {
 
 	//Append URL params
 	if params != nil {
@@ -60,6 +115,8 @@ func (g *Github) request(method string, path string, params map[string]string, b
 
 		path = path + "?" + p.Encode()
 	}
+
+	fmt.Println(path)
 
 	//Body path
 	b := bytes.NewBufferString("")
@@ -93,13 +150,12 @@ func (g *Github) request(method string, path string, params map[string]string, b
 		os.Exit(1)
 	} else {
 
-		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
 
-		user := new(User)
-		helpers.DecodeJSON(resp.Body, user)
+		if err != nil {
+			panic(err)
+		}
 
-		user.AccessToken = g.AccessToken
-
-		cb <- user
+		cb <- body
 	}
 }

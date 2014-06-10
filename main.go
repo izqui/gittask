@@ -62,6 +62,7 @@ func setupServer(s *martini.Martini) {
 	router := martini.NewRouter()
 
 	router.Get("/", oauth2.LoginRequired, website.Index)
+	router.Get("/repos", oauth2.LoginRequired, website.RepoList)
 
 	s.Action(router.Handle)
 

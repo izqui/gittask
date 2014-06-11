@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/codegangsta/martini-contrib/render"
 	"github.com/go-martini/martini"
 	"github.com/izqui/oauth2"
 	"github.com/martini-contrib/sessions"
@@ -46,6 +47,7 @@ func setupServer(s *martini.Martini) {
 	s = martini.New()
 	s.Use(martini.Logger())
 	s.Use(martini.Recovery())
+	s.Use(render.Renderer())
 	s.Use(sessions.Sessions("sessionbro", sessions.NewCookieStore([]byte("olakase"))))
 	s.Use(oauth2.Github(&oauth2.Options{
 
@@ -62,6 +64,9 @@ func setupServer(s *martini.Martini) {
 	router := martini.NewRouter()
 
 	router.Get("/", oauth2.LoginRequired, website.Index)
+
+	router.Get("/repo/new", oauth2.LoginRequired, website.NewRepoGet)
+	router.Post("/repo/new", oauth2.LoginRequired, website.NewRepoPost)
 	router.Get("/repos", oauth2.LoginRequired, website.RepoList)
 
 	s.Action(router.Handle)

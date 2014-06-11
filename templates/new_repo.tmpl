@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>New Repo</title>
+</head>
+<body>
+	<h1>Hello {{.User.Username}}</h1>
+	<p>Select the project you want to add to Gittask</p>
+	<form action="/repo/new" method="POST">
+		<select name="project">
+			{{range .Repos}}
+			<option value="{{.Name}}">{{.FullName}} ({{.Language}})</option>
+			{{end}}
+		</select>
+		<input type="submit"/>
+	</form>
+</body>
+</html>

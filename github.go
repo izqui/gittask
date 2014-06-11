@@ -61,36 +61,11 @@ func (g *Github) UserRepos(username string) []Repo {
 		path = "/users/" + username + "/repos"
 	}
 
-	go g.request("GET", path, map[string]string{"type": "public", "sort": "pushed"}, nil, callback)
+	go g.request("GET", path, map[string]string{"type": "public", "sort": "updated"}, nil, callback)
 
 	select {
 
 	case body := <-callback:
-
-		/*var repos []json.RawMessage
-
-		if err := json.Unmarshal(body, &repos); err != nil {
-
-			panic(err)
-		}
-
-		for _, obj := range repos {
-
-			var repo Repo
-			if err := json.Unmarshal(obj, &repo); err != nil {
-
-				panic(err)
-			}
-
-			fmt.Printf("%v", repo)
-		}
-
-		return make([]Repo, 1)
-
-		//fmt.Print(repos)
-
-		//return repos
-		*/
 
 		var repos []Repo
 		if err := json.Unmarshal(body, &repos); err != nil {
@@ -116,7 +91,7 @@ func (g *Github) request(method string, path string, params map[string]string, b
 		path = path + "?" + p.Encode()
 	}
 
-	fmt.Println(path)
+	fmt.Printf("%s %s", method, path)
 
 	//Body path
 	b := bytes.NewBufferString("")

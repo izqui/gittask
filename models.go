@@ -19,11 +19,13 @@ type User struct {
 }
 
 type Repo struct {
-	Id       bson.ObjectId `json:"_id,omitempty"`
-	GithubId int           `json:"id,omitempty"`
+	Id     bson.ObjectId `bson:"_id"`
+	UserId bson.ObjectId `bson:"user_id"`
 
+	GithubId int    `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	FullName string `json:"full_name,omitempty"`
+	Language string `json:"language,omitempty"`
 }
 
 func CurrentUser(token string) (user *User) {
@@ -56,4 +58,16 @@ func (u *User) Update() {
 	}
 
 	return
+}
+
+func (u *User) GetRepos() (repos []Repo) {
+
+	repoCollection := DB.C("repos")
+
+	if err := repoCollection.Find(bson.M{"user_id": u.Id}).All(&repos); err != nil {
+
+		panic(err)
+	} else {
+		return
+	}
 }

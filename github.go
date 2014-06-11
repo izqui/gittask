@@ -77,6 +77,25 @@ func (g *Github) UserRepos(username string) []Repo {
 
 }
 
+func (g *Github) GetRepo(owner string, repo string) *Repo {
+
+	cb := make(jsonCallback)
+	path := fmt.Sprintf("/repos/%s/%s", owner, repo)
+
+	go g.request("GET", path, nil, nil, cb)
+
+	select {
+
+	case body := <-cb:
+
+		repo := new(Repo)
+		if err := json.Unmarshal(body, &repo); err != nil {
+			panic(err)
+		}
+
+		return repo
+	}
+}
 func (g *Github) request(method string, path string, params map[string]string, body map[string]string, cb jsonCallback) {
 
 	//Append URL params

@@ -8,6 +8,7 @@ import (
 	"github.com/izqui/oauth2"
 
 	"github.com/codegangsta/martini-contrib/render"
+	"labix.org/v2/mgo/bson"
 )
 
 type Website struct{}
@@ -51,6 +52,35 @@ func (w *Website) NewRepoGet(tokens oauth2.Tokens, r render.Render) {
 
 func (w *Website) NewRepoPost(tokens oauth2.Tokens, request *http.Request) string {
 
+	repoCollection := DB.C("repos")
+
 	project := request.FormValue("project")
-	return project
+
+	user := CurrentUser(tokens.Access())
+	repo := &Repo{}
+
+	//I probably should implement a better error handler
+	if err := repoCollection.Find(bson.M{}).One(&repo); repo == nil || err != nil {
+
+		g := &Github{AccessToken: tokens.Access()}
+		repo := g.GetRepo(user.Username, project)
+
+		//Saving Repo to DB
+		repo.Id = bson.NewObjectId()
+		repo.UserId = user.Id
+		if err := repoCollection.Insert(repo); err != nil {
+
+			panic(err)
+
+		} else {
+
+			return "Saved repo to DB"
+		}
+
+	} else {
+
+		return "Repo already exists in database"
+	}
+
+	return "WTF"
 }

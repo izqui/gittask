@@ -26,6 +26,14 @@ type Repo struct {
 	Name     string `json:"name,omitempty"`
 	FullName string `json:"full_name,omitempty"`
 	Language string `json:"language,omitempty"`
+
+	Tasks []Task `bson:"tasks"`
+}
+
+type Task struct {
+	Name     string `bson:"name"`
+	Priority int    `bson:"priority"`
+	Status   string `bson:"status"`
 }
 
 func CurrentUser(token string) (user *User) {

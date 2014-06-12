@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{.User.Username}} repositories</title>
+</head>
+<body>
+	<h1>{{.User.Username}} repositories</h1>
+	<a href="/repo/new">Add repo to Gittask</a>
+	<ul>
+		{{range .Repos}}
+			<li><a href="/repo/{{.FullName}}">{{.Name}}({{.Language}})</a></li>
+		{{end}}
+	</ul>
+</body>
+</html>

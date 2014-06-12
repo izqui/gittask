@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>gittask - {{.Repo.Name}}</title>
+</head>
+<body>
+	<h1>{{.Repo.Name}} tasks</h1>
+	<ul>
+		{{ range .Repo.Tasks }}
+			<li>{{.Name}} ({{.Status}})</li>
+		{{ end }}
+	</ul>
+	{{ if .Owner }}
+	<h3>Add new task</h3>
+	<form method="POST" action="/repo/{{.Repo.FullName}}/task">
+		<input type="text" name="task"/>
+		<input type="submit"/>
+	</form>
+	{{ end }}
+</body>
+</html>

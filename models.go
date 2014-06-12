@@ -22,10 +22,10 @@ type Repo struct {
 	Id     bson.ObjectId `bson:"_id"`
 	UserId bson.ObjectId `bson:"user_id"`
 
-	GithubId int    `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	FullName string `json:"full_name,omitempty"`
-	Language string `json:"language,omitempty"`
+	GithubId int    `json:"id,omitempty" bson:"github_id"`
+	Name     string `json:"name,omitempty" bson:"name"`
+	FullName string `json:"full_name,omitempty" bson:"full_name"`
+	Language string `json:"language,omitempty" bson:"language"`
 
 	Tasks []Task `bson:"tasks"`
 }
@@ -78,4 +78,22 @@ func (u *User) GetRepos() (repos []Repo) {
 	} else {
 		return
 	}
+}
+
+func (r *Repo) Update() {
+
+	repoCollection := DB.C("repos")
+
+	change := mgo.Change{
+
+		ReturnNew: true,
+		Update:    helpers.StructToBSONMap(r),
+	}
+	fmt.Println(change.Update)
+	if _, err := repoCollection.Find(bson.M{"_id": r.Id}).Apply(change, r); err != nil {
+
+		panic(err)
+	}
+
+	return
 }

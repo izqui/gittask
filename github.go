@@ -50,7 +50,7 @@ func (g *Github) UserInfo(username string) *User {
 
 }
 
-func (g *Github) UserRepos(username string) []Repo {
+func (g *Github) UserRepos(username string) (error, []Repo) {
 
 	callback := make(jsonCallback)
 
@@ -70,17 +70,17 @@ func (g *Github) UserRepos(username string) []Repo {
 		var repos []Repo
 		if err := json.Unmarshal(body, &repos); err != nil {
 
-			panic(err)
+			return err, nil
 		}
-		return repos
+		return nil, repos
 	}
 
 }
 
-func (g *Github) GetRepo(owner string, repo string) *Repo {
+func (g *Github) GetRepo(owner string, reponame string) (err error, repo *Repo) {
 
 	cb := make(jsonCallback)
-	path := fmt.Sprintf("/repos/%s/%s", owner, repo)
+	path := fmt.Sprintf("/repos/%s/%s", owner, reponame)
 
 	go g.request("GET", path, nil, nil, cb)
 
@@ -88,12 +88,8 @@ func (g *Github) GetRepo(owner string, repo string) *Repo {
 
 	case body := <-cb:
 
-		repo := new(Repo)
-		if err := json.Unmarshal(body, &repo); err != nil {
-			panic(err)
-		}
-
-		return repo
+		err = json.Unmarshal(body, &repo)
+		return
 	}
 }
 func (g *Github) request(method string, path string, params map[string]string, body map[string]string, cb jsonCallback) {

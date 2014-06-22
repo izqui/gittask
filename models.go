@@ -68,16 +68,33 @@ func (u *User) Update() {
 	return
 }
 
-func (u *User) GetRepos() (repos []Repo) {
+func (u *User) GetRepos() (err error, repos []Repo) {
 
 	repoCollection := DB.C("repos")
 
-	if err := repoCollection.Find(bson.M{"user_id": u.Id}).All(&repos); err != nil {
+	err = repoCollection.Find(bson.M{"user_id": u.Id}).All(&repos)
+	return
+}
 
-		panic(err)
-	} else {
-		return
+func (u *User) NewRepo(name string) (err error, repo *Repo) {
+
+	repoCollection := DB.C("repos")
+
+	//I probably should implement a better error handler
+	err = repoCollection.Find(bson.M{"user_id": u.Id, "name": name}).One(&repo)
+
+	if repo == nil {
+
+		g := &Github{AccessToken: u.AccessToken}
+		err, repo = g.GetRepo(u.Username, name)
+
+		//Saving Repo to DB
+		repo.Id = bson.NewObjectId()
+		repo.UserId = u.Id
+		err = repoCollection.Insert(repo)
 	}
+
+	return
 }
 
 func (r *Repo) Update() {

@@ -72,6 +72,7 @@ func setupServer(s *martini.Martini) {
 	router.Get("/repo/:user/:repo", website.GetRepo)
 
 	router.Post("/repo/:user/:repo/task", oauth2.LoginRequired, website.NewTask)
+
 	s.Action(router.Handle)
 
 	server = s

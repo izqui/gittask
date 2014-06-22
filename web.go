@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/izqui/helpers"
 	"github.com/izqui/oauth2"
@@ -55,7 +56,7 @@ func (w *Website) NewRepoGet(tokens oauth2.Tokens, r render.Render) {
 	user := CurrentUser(tokens.Access())
 
 	g := &Github{AccessToken: tokens.Access()}
-	repos := g.UserRepos("me")
+	err, repos := g.UserRepos("me")
 
 	/*
 		//Don't present repos already in the db
@@ -73,55 +74,57 @@ func (w *Website) NewRepoGet(tokens oauth2.Tokens, r render.Render) {
 			}
 		}
 	*/
-	data := struct {
-		User  *User
-		Repos []Repo
-	}{
-		user,
-		repos,
-	}
+	if err != nil {
 
-	r.HTML(200, "new_repo", data)
+		r.Error(500)
+	} else {
+
+		data := struct {
+			User  *User
+			Repos []Repo
+		}{
+			user,
+			repos,
+		}
+
+		r.HTML(200, "new_repo", data)
+	}
 }
 
-func (w *Website) NewRepoPost(tokens oauth2.Tokens, request *http.Request, r render.Render) string {
-
-	repoCollection := DB.C("repos")
+func (w *Website) NewRepoPost(tokens oauth2.Tokens, request *http.Request, r render.Render) {
 
 	project := request.FormValue("project")
 
 	user := CurrentUser(tokens.Access())
-	repo := &Repo{}
 
-	//I probably should implement a better error handler
-	if err := repoCollection.Find(bson.M{"user_id": user.Id, "name": project}).One(&repo); repo == nil || err != nil {
+	err, repo := user.NewRepo(project)
 
-		g := &Github{AccessToken: tokens.Access()}
-		repo := g.GetRepo(user.Username, project)
+	if err != nil {
 
-		//Saving Repo to DB
-		repo.Id = bson.NewObjectId()
-		repo.UserId = user.Id
-		if err := repoCollection.Insert(repo); err != nil {
-
-			panic(err)
-
-		} else {
-			r.Redirect("/repos")
-		}
-
+		r.Error(500)
+		panic(err)
 	} else {
 
-		return "Repo already exists in database"
+		r.Redirect(fmt.Sprintf("/repo/%s", repo.FullName))
 	}
-
-	return "WTF"
 }
 
 func (w *Website) GetRepo(params martini.Params, tokens oauth2.Tokens, r render.Render) {
 
 	username := params["user"]
-	reponame := params["repo"]
+	repofield := params["repo"]
+	var reponame, extension string
+
+	// Search for file extension in route
+	repoComps := strings.Split(repofield, ".")
+	if len(repoComps) > 1 {
+
+		extension = repoComps[1]
+	}
+	reponame = repoComps[0]
+
+	fmt.Println(extension)
+
 	fullname := fmt.Sprintf("%s/%s", username, reponame)
 
 	repoCollection := DB.C("repos")
@@ -154,6 +157,21 @@ func (w *Website) GetRepo(params martini.Params, tokens oauth2.Tokens, r render.
 		r.HTML(200, "repo", data)
 
 	}
+}
+
+func (w *Website) RepoImage(params martini.Params, r render.Render) {
+
+	username := params["user"]
+	reponame := params["repo"]
+	fullname := fmt.Sprintf("%s/%s", username, reponame)
+
+	repoCollection := DB.C("repos")
+	repo := new(Repo)
+	if err := repoCollection.Find(bson.M{"full_name": fullname}).One(&repo); err == nil || repo != nil {
+
+		r.JSON(200, map[string]interface{}{"tasks": len(repo.Tasks)})
+	}
+
 }
 
 func (w *Website) NewTask(params martini.Params, tokens oauth2.Tokens, r render.Render, request *http.Request) {

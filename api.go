@@ -22,6 +22,7 @@ func (a *Api) Login(tokens oauth2.Tokens) {
 		//Get user and save it if not in database
 		github := &Github{AccessToken: token}
 		user = github.UserInfo("me")
+		user.AccessToken = token
 
 		//Check if that github user is already in the database with a different token
 		dbuser := &User{}

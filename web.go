@@ -19,9 +19,8 @@ func (w *Website) Index(tokens oauth2.Tokens) string {
 	//It is needed to check if a value is nil because of martini's dependency injector
 	if !helpers.IsNil(tokens) {
 
-		user := CurrentUser(tokens.Access())
-
-		return fmt.Sprintf("You're logged in %v :)", user.Username)
+		//user := CurrentUser(tokens.Access())
+		return fmt.Sprintf("You're logged")
 	}
 	return "You're not logged in :("
 }
@@ -169,6 +168,7 @@ func (w *Website) NewTask(params martini.Params, tokens oauth2.Tokens, r render.
 	if err := repoCollection.Find(bson.M{"full_name": fullname}).One(&repo); err != nil || repo == nil {
 
 		r.HTML(404, "404", nil)
+
 	} else {
 
 		task := Task{Name: taskname}
